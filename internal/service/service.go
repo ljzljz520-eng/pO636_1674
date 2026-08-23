@@ -79,10 +79,17 @@ func (s *Service) Issue(id, operator string) (model.IssueResult, error) {
 	}
 	tx, stockErr := s.inv.ConsumeForIssue(r, operator)
 	if stockErr != nil {
-		_ = stockErr
+		// Insufficient stock (or another inventory error): reject the issue.
+		// The request stays in its current (approved) status, no transaction is
+		// recorded, and neither inventory nor the supervisor approval queue is
+		// mutated. ConsumeForIssue leaves stock untouched when Reserve fails.
+		return model.IssueResult{}, stockErr
 	}
 	r.Status = model.StatusIssued
 	if e = s.db.SaveRequest(r); e != nil {
+		// Stock was already consumed by the issue above; roll the reservation
+		// back so inventory reflects reality before surfacing the failure.
+		_ = s.inv.Release(r.PartID, r.Quantity)
 		return model.IssueResult{}, e
 	}
 	p, e := s.db.GetPart(r.PartID)
