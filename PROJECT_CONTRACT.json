@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "metrics": {"production_loc": 2418, "production_files": 18, "production_packages": 8, "test_files": 9, "production_functions": 122, "decision_points": 143},
+  "persistence": {"module": "go.etcd.io/bbolt", "entities": ["SparePart", "Equipment", "SpareIssueRequest", "ApprovalRecord", "InventoryTransaction", "Notification", "AuditEvent"], "reopen_test": "TestPersistenceSurvivesReopen"},
+  "workflows": [
+    {"steps": ["engineer submits equipment, spare part, quantity, and fault description", "inventory confirms available stock", "supervisor approves the request", "operator records the issue transaction"], "test": "TestWorkflowOne"},
+    {"steps": ["calculate request value", "mark high-value request", "show high-value supervisor queue", "approve or reject the queued request"], "test": "TestWorkflowTwo"},
+    {"steps": ["open embedded bbolt storage", "write spare part and request entities", "close the storage handle", "reopen and query persisted entities"], "test": "TestPersistenceSurvivesReopen"},
+    {"steps": ["receive HTTP request", "map domain stock error", "return readable API message", "frontend displays the message"], "test": "TestFriendlyErrorMessage"}
+  ]
+}
